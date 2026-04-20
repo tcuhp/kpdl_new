@@ -1,5 +1,6 @@
 import tensorflow as tf
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from PIL import Image
 import numpy as np
 import os
@@ -116,6 +117,7 @@ TREATMENTS = {
 TEMPLATE_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), "frontend")
 STATIC_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), "frontend")
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
+CORS(app)
 model = None
 
 
@@ -171,6 +173,21 @@ def build_result(predicted_class, confidence, all_probs, filename=None):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/page-analyze.html')
+def page_analyze():
+    return render_template('page-analyze.html')
+
+
+@app.route('/page-chat.html')
+def page_chat():
+    return render_template('page-chat.html')
+
+
+@app.route('/page-library.html')
+def page_library():
+    return render_template('page-library.html')
 
 
 @app.route('/predict', methods=['POST'])

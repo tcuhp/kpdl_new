@@ -18,10 +18,14 @@ function switchPage(name) {
 // ── Input Switcher (Upload / Camera) ────────────────────────────────
 function switchInput(mode) {
     const isCamera = mode === 'camera';
-    document.getElementById('sw-upload').classList.toggle('active', !isCamera);
-    document.getElementById('sw-camera').classList.toggle('active', isCamera);
-    document.getElementById('upload-panel').style.display = isCamera ? 'none' : 'block';
-    document.getElementById('camera-panel').style.display = isCamera ? 'block' : 'none';
+    const swUpload = document.getElementById('sw-upload');
+    const swCamera = document.getElementById('sw-camera');
+    const uploadPanel = document.getElementById('upload-panel');
+    const cameraPanel = document.getElementById('camera-panel');
+    if (swUpload) swUpload.classList.toggle('active', !isCamera);
+    if (swCamera) swCamera.classList.toggle('active', isCamera);
+    if (uploadPanel) uploadPanel.style.display = isCamera ? 'none' : 'block';
+    if (cameraPanel) cameraPanel.style.display = isCamera ? 'block' : 'none';
     if (!isCamera && cameraStream) { stopCamera(); }
     resetAnalyzeBtn();
 }
@@ -29,13 +33,15 @@ function switchInput(mode) {
 // ── Upload ───────────────────────────────────────────────────────────
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
-dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('drag');
-    if (e.dataTransfer.files.length > 0) { fileInput.files = e.dataTransfer.files; handleFileSelect(); }
-});
-fileInput.addEventListener('change', handleFileSelect);
+if (dropZone) {
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dropZone.classList.remove('drag');
+        if (e.dataTransfer.files.length > 0) { fileInput.files = e.dataTransfer.files; handleFileSelect(); }
+    });
+}
+if (fileInput) fileInput.addEventListener('change', handleFileSelect);
 
 function handleFileSelect() {
     const file = fileInput.files[0];
@@ -44,14 +50,22 @@ function handleFileSelect() {
     selectedFile = file;
     const reader = new FileReader();
     reader.onload = e => {
-        document.getElementById('preview-img').src = e.target.result;
-        document.getElementById('preview-img').style.display = 'block';
-        document.getElementById('preview-name').textContent = file.name;
-        document.getElementById('preview-name').style.display = 'block';
-        document.getElementById('upload-placeholder').style.display = 'none';
-        dropZone.classList.add('has-image');
+        const previewImg = document.getElementById('preview-img');
+        const previewName = document.getElementById('preview-name');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        if (previewImg) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+        }
+        if (previewName) {
+            previewName.textContent = file.name;
+            previewName.style.display = 'block';
+        }
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        if (dropZone) dropZone.classList.add('has-image');
         resetResult();
-        document.getElementById('btn-analyze').disabled = false;
+        const btnAnalyze = document.getElementById('btn-analyze');
+        if (btnAnalyze) btnAnalyze.disabled = false;
     };
     reader.readAsDataURL(file);
 }
@@ -63,9 +77,11 @@ async function startCamera() {
             video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
         const video = document.getElementById('camera-video');
-        video.srcObject = cameraStream;
-        document.getElementById('camera-start-btn').style.display = 'none';
-        document.getElementById('camera-live').style.display = 'block';
+        const startBtn = document.getElementById('camera-start-btn');
+        const live = document.getElementById('camera-live');
+        if (video) video.srcObject = cameraStream;
+        if (startBtn) startBtn.style.display = 'none';
+        if (live) live.style.display = 'block';
     } catch (e) {
         alert('Không thể mở camera: ' + e.message);
     }
@@ -84,6 +100,7 @@ async function flipCamera() {
 function capturePhoto() {
     const video = document.getElementById('camera-video');
     const canvas = document.getElementById('camera-canvas');
+    if (!video || !canvas) return;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
@@ -91,19 +108,25 @@ function capturePhoto() {
         capturedBlob = blob;
         selectedFile = null;
         const url = URL.createObjectURL(blob);
-        document.getElementById('captured-img').src = url;
-        document.getElementById('captured-preview').style.display = 'block';
-        document.getElementById('camera-live').style.display = 'none';
+        const capturedImg = document.getElementById('captured-img');
+        const capturedPreview = document.getElementById('captured-preview');
+        const cameraLive = document.getElementById('camera-live');
+        const btnAnalyze = document.getElementById('btn-analyze');
+        if (capturedImg) capturedImg.src = url;
+        if (capturedPreview) capturedPreview.style.display = 'block';
+        if (cameraLive) cameraLive.style.display = 'none';
         stopCamera();
         resetResult();
-        document.getElementById('btn-analyze').disabled = false;
+        if (btnAnalyze) btnAnalyze.disabled = false;
     }, 'image/jpeg', 0.92);
 }
 
 function retakePhoto() {
     capturedBlob = null;
-    document.getElementById('captured-preview').style.display = 'none';
-    document.getElementById('btn-analyze').disabled = true;
+    const capturedPreview = document.getElementById('captured-preview');
+    const btnAnalyze = document.getElementById('btn-analyze');
+    if (capturedPreview) capturedPreview.style.display = 'none';
+    if (btnAnalyze) btnAnalyze.disabled = true;
     startCamera();
 }
 
@@ -112,12 +135,13 @@ async function runAnalysis() {
     const file = capturedBlob || selectedFile;
     if (!file) return;
     setLoading('btn-analyze', 'spinner', 'btn-icon', 'btn-text', true, 'Đang phân tích...');
-    document.getElementById('error-box').style.display = 'none';
+    const errorBox = document.getElementById('error-box');
+    if (errorBox) errorBox.style.display = 'none';
 
     try {
         const formData = new FormData();
         formData.append('file', file, capturedBlob ? 'capture.jpg' : selectedFile.name);
-        const resp = await fetch('/predict', { method: 'POST', body: formData });
+        const resp = await fetch('http://localhost:5000/predict', { method: 'POST', body: formData });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const result = await resp.json();
         if (result.error) { showError('error-box', result.error); return; }
@@ -134,29 +158,47 @@ async function runAnalysis() {
 
 function showResult(result) {
     const card = document.getElementById('result-card');
-    document.getElementById('result-dot').style.background = result.color;
-    const lbl = document.getElementById('result-label');
-    lbl.textContent = result.label; lbl.style.color = result.color;
-    const cv = document.getElementById('conf-val');
-    cv.textContent = roundToThree(result.confidence) + '%'; cv.style.color = result.color;
-    const fill = document.getElementById('bar-fill');
-    fill.style.background = result.color; fill.style.width = '0%';
-    document.getElementById('result-desc').innerHTML = result.description;
-    document.getElementById('result-desc').style.borderLeftColor = result.color;
+    if (!card) return;
+    const resultDot = document.getElementById('result-dot');
+    const resultLabel = document.getElementById('result-label');
+    const confVal = document.getElementById('conf-val');
+    const barFill = document.getElementById('bar-fill');
+    const resultDesc = document.getElementById('result-desc');
+    const allProbs = document.getElementById('all-probs');
+
+    if (resultDot) resultDot.style.background = result.color;
+    if (resultLabel) {
+        resultLabel.textContent = result.label;
+        resultLabel.style.color = result.color;
+    }
+    if (confVal) {
+        confVal.textContent = roundToThree(result.confidence) + '%';
+        confVal.style.color = result.color;
+    }
+    if (barFill) {
+        barFill.style.background = result.color;
+        barFill.style.width = '0%';
+    }
+    if (resultDesc) {
+        resultDesc.innerHTML = result.description;
+        resultDesc.style.borderLeftColor = result.color;
+    }
 
     const shortNames = { 'Potato___Early_blight': 'Đốm Vòng', 'Potato___Late_blight': 'Mốc Sương', 'Potato___healthy': 'Khỏe Mạnh' };
     const pColors = { 'Potato___Early_blight': '#e65100', 'Potato___Late_blight': '#b71c1c', 'Potato___healthy': '#2e7d32' };
-    document.getElementById('all-probs').innerHTML = Object.entries(result.all_probs).map(([cls, val]) =>
-        `<div class="prob-row">
+    if (allProbs) {
+        allProbs.innerHTML = Object.entries(result.all_probs).map(([cls, val]) =>
+            `<div class="prob-row">
       <span class="prob-name">${shortNames[cls] || cls}</span>
       <div class="prob-track"><div class="prob-fill" style="background:${pColors[cls]};width:0%" data-val="${val}"></div></div>
       <span class="prob-val">${roundToThree(val)}%</span>
     </div>`).join('');
+    }
 
     card.style.display = 'block';
     setTimeout(() => {
-        fill.style.width = result.confidence + '%';
-        document.querySelectorAll('.prob-fill').forEach(f => f.style.width = f.dataset.val + '%');
+        if (barFill) barFill.style.width = result.confidence + '%';
+        document.querySelectorAll('.prob-fill').forEach(f => { if (f) f.style.width = f.dataset.val + '%'; });
     }, 60);
     showTreatment(result.treatment);
 }
@@ -164,58 +206,83 @@ function showResult(result) {
 function showTreatment(t) {
     if (!t || !t.severity) return;
     const panel = document.getElementById('treatment-panel');
+    if (!panel) return;
     const badge = document.getElementById('sev-badge');
-    badge.textContent = t.severity; badge.style.color = t.severity_color; badge.style.borderColor = t.severity_color; badge.style.backgroundColor = t.severity_color + '1a';
+    const treatmentBody = document.getElementById('treatment-body');
+
+    if (badge) {
+        badge.textContent = t.severity;
+        badge.style.color = t.severity_color;
+        badge.style.borderColor = t.severity_color;
+        badge.style.backgroundColor = t.severity_color + '1a';
+    }
     const makeList = items => items.length
         ? `<ul class="t-list">${items.map(i => `<li>${i}</li>`).join('')}</ul>`
         : '<p style="font-size:13px;color:var(--text-2)">Không cần thiết.</p>';
-    document.getElementById('treatment-body').innerHTML = `
+    if (treatmentBody) {
+        treatmentBody.innerHTML = `
     <div class="t-section"><div class="t-section-title">⏱ Thời điểm xử lý</div><div class="timing-box">${t.timing}</div></div>
     <div class="t-section"><div class="t-section-title">🛡 Phòng ngừa</div>${makeList(t.prevention)}</div>
     ${t.chemical.length ? `<div class="t-section"><div class="t-section-title">🧪 Thuốc hóa học</div>${makeList(t.chemical)}</div>` : ''}
     <div class="t-section"><div class="t-section-title">🌿 Sinh học</div>${makeList(t.biological)}</div>`;
+    }
     panel.style.display = 'block';
 }
 
 function toggleTreatment() {
-    document.getElementById('treatment-body').classList.toggle('open');
-    document.getElementById('chevron').classList.toggle('open');
+    const treatmentBody = document.getElementById('treatment-body');
+    const chevron = document.getElementById('chevron');
+    if (treatmentBody) treatmentBody.classList.toggle('open');
+    if (chevron) chevron.classList.toggle('open');
 }
 
 function resetResult() {
-    document.getElementById('result-card').style.display = 'none';
-    document.getElementById('treatment-panel').style.display = 'none';
-    document.getElementById('error-box').style.display = 'none';
+    const resultCard = document.getElementById('result-card');
+    const treatmentPanel = document.getElementById('treatment-panel');
+    const errorBox = document.getElementById('error-box');
+    if (resultCard) resultCard.style.display = 'none';
+    if (treatmentPanel) treatmentPanel.style.display = 'none';
+    if (errorBox) errorBox.style.display = 'none';
 }
 
 function resetAnalyzeBtn() {
-    document.getElementById('btn-analyze').disabled = true;
-    document.getElementById('btn-text').textContent = 'Phân tích bệnh';
+    const btn = document.getElementById('btn-analyze');
+    const txt = document.getElementById('btn-text');
+    if (btn) btn.disabled = true;
+    if (txt) txt.textContent = 'Phân tích bệnh';
 }
 
 // ── Multi Compare ────────────────────────────────────────────────────
-document.getElementById('multi-input').addEventListener('change', function () {
-    multiFiles = Array.from(this.files);
-    const grid = document.getElementById('multi-preview-grid');
-    grid.innerHTML = '';
-    multiFiles.forEach(f => {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const div = document.createElement('div'); div.className = 'multi-item';
-            div.innerHTML = `<img src="${e.target.result}"><div class="multi-item-name">${f.name}</div>`;
-            grid.appendChild(div);
-        };
-        reader.readAsDataURL(f);
+const multiInput = document.getElementById('multi-input');
+if (multiInput) {
+    multiInput.addEventListener('change', function () {
+        multiFiles = Array.from(this.files);
+        const grid = document.getElementById('multi-preview-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        multiFiles.forEach(f => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement('div'); div.className = 'multi-item';
+                div.innerHTML = `<img src="${e.target.result}"><div class="multi-item-name">${f.name}</div>`;
+                grid.appendChild(div);
+            };
+            reader.readAsDataURL(f);
+        });
+        const btnCompare = document.getElementById('btn-compare');
+        if (btnCompare) btnCompare.style.display = multiFiles.length >= 2 ? 'flex' : 'none';
+        const compareGrid = document.getElementById('compare-grid');
+        if (compareGrid) compareGrid.innerHTML = '';
     });
-    document.getElementById('btn-compare').style.display = multiFiles.length >= 2 ? 'flex' : 'none';
-    document.getElementById('compare-grid').innerHTML = '';
-});
+}
 
 async function runCompare() {
     if (multiFiles.length < 2) return;
     setLoading('btn-compare', 'compare-spinner', 'compare-icon', 'compare-text', true, 'Đang phân tích...');
-    document.getElementById('compare-error').style.display = 'none';
-    document.getElementById('compare-grid').innerHTML = '';
+    const compareError = document.getElementById('compare-error');
+    if (compareError) compareError.style.display = 'none';
+    const compareGrid = document.getElementById('compare-grid');
+    if (compareGrid) compareGrid.innerHTML = '';
     try {
         const fd = new FormData();
         multiFiles.forEach(f => fd.append('files[]', f));
@@ -223,22 +290,23 @@ async function runCompare() {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         if (data.error) { showError('compare-error', data.error); return; }
-        const grid = document.getElementById('compare-grid');
-        data.batch.forEach((r, i) => {
-            const url = URL.createObjectURL(multiFiles[i]);
-            const div = document.createElement('div'); div.className = 'compare-card';
-            if (r.error) {
-                div.innerHTML = `<div style="padding:0.75rem;font-size:12px;color:#c62828;">❌ ${r.error}</div>`;
-            } else {
-                div.innerHTML = `<img src="${url}"><div class="compare-card-body">
+        if (compareGrid) {
+            data.batch.forEach((r, i) => {
+                const url = URL.createObjectURL(multiFiles[i]);
+                const div = document.createElement('div'); div.className = 'compare-card';
+                if (r.error) {
+                    div.innerHTML = `<div style="padding:0.75rem;font-size:12px;color:#c62828;">❌ ${r.error}</div>`;
+                } else {
+                    div.innerHTML = `<img src="${url}"><div class="compare-card-body">
           <div class="compare-card-label" style="color:${r.color}">${r.label}</div>
           <div style="font-size:11.5px;color:var(--text-2)">Tin cậy: <b style="color:${r.color}">${roundToThree(r.confidence)}%</b></div>
           <div class="compare-mini-bar" style="background:${r.color};width:${r.confidence}%"></div>
           <div class="compare-filename">${r.filename}</div>
         </div>`;
-            }
-            grid.appendChild(div);
-        });
+                }
+                compareGrid.appendChild(div);
+            });
+        }
     } catch (e) {
         showError('compare-error', 'Lỗi: ' + e.message);
     } finally {
@@ -255,19 +323,25 @@ function toggleDisease(id) {
 // ── AI Chat ──────────────────────────────────────────────────────────
 function updateContextBanner() {
     const banner = document.getElementById('context-banner');
-    if (diagnosisContext) {
-        banner.style.display = 'flex';
-        banner.classList.add('has-ctx');
+    if (banner) {
+        if (diagnosisContext) {
+            banner.style.display = 'flex';
+            banner.classList.add('has-ctx');
+        }
     }
 }
 
 function sendQuick(btn) {
-    document.getElementById('chat-input').value = btn.textContent;
-    sendChat();
+    const input = document.getElementById('chat-input');
+    if (input) {
+        input.value = btn.textContent;
+        sendChat();
+    }
 }
 
 async function sendChat() {
     const input = document.getElementById('chat-input');
+    if (!input) return;
     const msg = input.value.trim();
     if (!msg) return;
     input.value = ''; input.style.height = 'auto';
@@ -276,13 +350,15 @@ async function sendChat() {
     chatHistory.push({ role: 'user', text: msg });
 
     // Hide quick questions after first use
-    document.getElementById('quick-questions').style.display = 'none';
+    const quickQuestions = document.getElementById('quick-questions');
+    if (quickQuestions) quickQuestions.style.display = 'none';
 
     const typingId = addTyping();
-    document.getElementById('btn-send').disabled = true;
+    const btnSend = document.getElementById('btn-send');
+    if (btnSend) btnSend.disabled = true;
 
     try {
-        const resp = await fetch('/chat', {
+        const resp = await fetch('http://localhost:5000/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: msg, history: chatHistory.slice(-10), diagnosis_context: diagnosisContext })
@@ -300,12 +376,13 @@ async function sendChat() {
         removeTyping(typingId);
         addChatMsg('bot', '❌ Lỗi kết nối: ' + e.message);
     } finally {
-        document.getElementById('btn-send').disabled = false;
+        if (btnSend) btnSend.disabled = false;
     }
 }
 
 function addChatMsg(role, text) {
     const msgs = document.getElementById('chat-messages');
+    if (!msgs) return;
     const div = document.createElement('div');
     div.className = 'chat-msg ' + role;
     const icon = role === 'bot' ? '🌿' : '👤';
@@ -325,6 +402,7 @@ function addChatMsg(role, text) {
 
 function addTyping() {
     const msgs = document.getElementById('chat-messages');
+    if (!msgs) return null;
     const id = 'typing-' + Date.now();
     const div = document.createElement('div');
     div.className = 'chat-msg bot'; div.id = id;
@@ -337,22 +415,30 @@ function addTyping() {
 }
 
 function removeTyping(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
+    if (id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
 function setLoading(btnId, spinnerId, iconId, textId, loading, text) {
-    document.getElementById(btnId).disabled = loading;
-    document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
-    document.getElementById(iconId).style.display = loading ? 'none' : 'block';
-    document.getElementById(textId).textContent = text;
+    const btn = document.getElementById(btnId);
+    const spinner = document.getElementById(spinnerId);
+    const icon = document.getElementById(iconId);
+    const txt = document.getElementById(textId);
+    if (btn) btn.disabled = loading;
+    if (spinner) spinner.style.display = loading ? 'block' : 'none';
+    if (icon) icon.style.display = loading ? 'none' : 'block';
+    if (txt) txt.textContent = text;
 }
 
 function showError(id, msg) {
     const el = document.getElementById(id);
-    el.textContent = '❌ ' + msg;
-    el.style.display = 'block';
+    if (el) {
+        el.textContent = '❌ ' + msg;
+        el.style.display = 'block';
+    }
 }
 
 function roundToThree(num) {

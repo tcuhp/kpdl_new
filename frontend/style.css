@@ -1177,3 +1177,56 @@ input[type="file"] {
 .chat-bubble li {
     margin-bottom: 2px;
 }
+
+/* Container chính chia 2 cột */
+.analysis-container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+}
+
+/* Độ rộng các cột trên Desktop */
+.analysis-left {
+  flex: 1.2; /* Cột ảnh rộng hơn một chút */
+  min-width: 0;
+}
+
+.analysis-right {
+  flex: 1;
+  min-width: 0;
+  position: sticky;
+  top: 20px; /* Kết quả sẽ trượt theo khi cuộn trang */
+}
+
+/* Đảm bảo nút phân tích luôn vừa khít cột trái */
+#btn-analyze {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+/* Tùy chỉnh cho thiết bị di động (Quay về 1 cột) */
+@media (max-width: 850px) {
+  .analysis-container {
+    flex-direction: column;
+  }
+  
+  .analysis-left, .analysis-right {
+    width: 100%;
+    flex: none;
+  }
+  
+  .analysis-right {
+    position: static;
+  }
+}
+
+/* Làm đẹp vùng hiển thị ảnh để cân đối với cột kết quả */
+.upload-zone {
+  min-height: 350px; /* Tăng chiều cao vùng upload */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
